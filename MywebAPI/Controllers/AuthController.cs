@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using MywebAPI.Auth;
 using MywebAPI.Data.Entities;
 using MywebAPI.Dtos;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MywebAPI.Controllers;
 
@@ -52,6 +54,16 @@ public class AuthController : ControllerBase
         var user = await _userManager.FindByEmailAsync(dto.Email);
         var rollen = await _userManager.GetRolesAsync(user!);
         return new GebruikerDto { Email = user!.Email!, Rollen = rollen.ToList() };
+    }
+
+        [HttpGet("me")]
+    [Authorize]
+    public ActionResult<GebruikerDto> Me()
+    {
+        var email = User.FindFirst(ClaimTypes.Email)?.Value ?? User.Identity!.Name!;
+        var rollen = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+
+        return new GebruikerDto { Email = email, Rollen = rollen };
     }
 
     [HttpPost("logout")]
